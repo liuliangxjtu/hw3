@@ -1,0 +1,117 @@
+1.画出直方图并进行直方图均衡
+clc;clear;
+[img1,map1]=imread('citywall.bmp');
+p1=ind2gray(img1,map1);
+histeq1=histeq(p1);
+figure(1);
+subplot(2,2,1);
+imshow(p1);
+title('citywall原图');
+subplot(2,2,2);
+imhist(p1);
+title('citywall原图的直方图');
+subplot(2,2,3);
+imshow(histeq1);
+title('citywall经直方图均衡化的图片');
+subplot(2,2,4);
+imhist(histeq1);
+title('citywall经均衡化后的直方图');
+
+
+
+2.直方图匹配
+clc;clear;
+[img1,map1]=imread('citywall1.bmp');
+map1(end+1:256,:)=0;
+p1=ind2gray(img1,map1);
+[img2,map2]=imread('citywall.bmp');
+p2=ind2gray(img2,map2);
+[img3,map3]=imread('citywall2.bmp');
+p3=ind2gray(img3,map3);
+im1=imhist(p2);
+h11=histeq(p1,im1);
+h13=histeq(p3,im1);
+figure;
+subplot(1,2,1);
+imshow(img1,map1);
+title('citywall1.bmp');
+subplot(1,2,2);
+imshow(h11,map2);
+imwrite(h11,map2,'citywall1直方图匹配增强后的图像.bmp');
+title('直方图匹配增强后的图像.bmp');
+figure;
+subplot(1,2,1);
+imshow(img3,map3);
+title('citywall2.bmp');
+
+
+
+
+3.7x7局部增强
+clc;clear;
+[img,map]=imread('elain.bmp');
+map(end+1:256,:)=0;
+Igray=ind2gray(img,map);
+k0=0.3;
+k1=0.01;
+E=4;
+masksize = 7; % 邻域范围，奇数
+exsize = floor(masksize/2); % 原图片需要填充的区域
+Iex = padarray(Igray, [exsize exsize], 'replicate', 'both'); % 图片填充
+Is = zeros(size(Igray)); % 局部标准差
+for i = 1:size(Igray, 1)
+for j = 1:size(Igray, 2)
+subdomain = Iex(i:i+2*exsize, j:j+2*exsize);
+localmean = sum(subdomain(:))/masksize^2;
+Is(i, j) = sqrt(sum((subdomain(:)-localmean).^2))/masksize;
+end
+end
+% 确定不同区域的放大系数
+meanIm = mean(Igray(:));
+minIm = min(Igray(:));
+meanIs = mean(Is(:));
+maxIs = max(Is(:));
+Im1 = Igray<(minIm+k0*(meanIm-minIm)); % 均值阈值提取
+Is1 = Is>(meanIs + k1*(maxIs-meanIs)); % 标准差阈值提取
+s = strel('disk',8); % 8需要根据实际图片大小来调
+Is1 = imclose(Is1, s); % 标准差阈值提取闭运算
+Ibw = Im1 & Is1; % 局部增强
+figure(1)
+subplot(221);
+imshow(Igray);
+title('原始图像')
+subplot(223)
+imshow(Ibw);title('增强图像的放大图像');
+subplot(224);
+imshow(Igray);title('局部增强原始图像');
+
+
+
+
+4.图像分割
+clc;clear;
+[img1,map1]=imread('elain.bmp');
+p1=ind2gray(img1,map1);
+[img2,map2]=imread('woman.Bmp');
+p2=ind2gray(img2,map2);
+figure;
+subplot(1,2,1);
+imshow(p1);
+title('elain原始图像');
+level1=graythresh(p1);
+pt1=im2bw(p1,level1);
+subplot(1,2,2);
+imshow(pt1);
+title('分割后图像');
+figure;
+subplot(1,2,1);
+imshow(p2);
+title('woman原始图像');
+level2=graythresh(p2);
+pt2=im2bw(p2,level2);
+subplot(1,2,2);
+imshow(pt2);
+title('分割后图像');
+subplot(1,2,2);
+imshow(h13,map2);
+title('直方图匹配增强后后的图像.bmp');
